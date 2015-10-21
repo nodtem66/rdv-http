@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RDV-HTTP</title>
+    <style>
+        li {padding: 2px;}
+        code {background:#f5f5f5; padding: 2px 4px; margin-right: 16px;}
+    </style>
+</head>
+<body>
+<h1>RDV-HTTP</h1>
+<ul>
+    <li><code><a href="/">/</a></code> help page</li>
+    <li><code><a href="/stat">/stat</a></code> server stats</li>
+    <li><code><a href="/sessions">/sessions</a></code> show session list</li>
+    <li><code>/ping?dsn=host:port</code> show list of endpoints and channels</li>
+    <li><code>/session/start?dsn=$dsn</code> start data stream session to target DSN (format: host:port/endpoint/channel)</li>
+    <li><code>/session/stop?sid=$sid</code> stop session with input sid</li>
+    <li><code>/session/$sid</code> flush data buffer to JSON format</li>
+</ul>
+</body>
+</html>
