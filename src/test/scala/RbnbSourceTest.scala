@@ -16,6 +16,13 @@ class RbnbSourceTest extends WordSpec {
       }
     }
 
+    "be None when input `/`" in {
+      "/" match {
+        case RbnbSource(host, port, endpoint, channel) => fail("a single word cannot be extracted")
+        case _ => ()
+      }
+    }
+
     "be (,,endpoint_1,) when input `/endpoint_1`" in {
       "/endpoint_1" match {
         case RbnbSource(host, port, endpoint, channel) =>
@@ -33,6 +40,28 @@ class RbnbSourceTest extends WordSpec {
           assert(host == "")
           assert(port == "")
           assert(endpoint == "endpoint_1")
+          assert(channel == "")
+        case _ => fail("extractor returns None")
+      }
+    }
+
+    "be (host,port,,) when input `host:port/`" in {
+      "host:port/" match {
+        case RbnbSource(host, port, endpoint, channel) =>
+          assert(host == "host")
+          assert(port == "port")
+          assert(endpoint == "")
+          assert(channel == "")
+        case _ => fail("extractor returns None")
+      }
+    }
+
+    "be (host,port,,) when input `host:port`" in {
+      "host:port" match {
+        case RbnbSource(host, port, endpoint, channel) =>
+          assert(host == "host")
+          assert(port == "port")
+          assert(endpoint == "")
           assert(channel == "")
         case _ => fail("extractor returns None")
       }
@@ -61,8 +90,12 @@ class RbnbSourceTest extends WordSpec {
     }
     "be (host,,ep_1,ch_1) when input `host/ep_1/ch_1`" in {
       "host/ep_1/ch_1" match {
-        case RbnbSource(host,port, endpoint, channel) => fail("RbnbHost require both host and port")
-        case _ => ()
+        case RbnbSource(host,port, endpoint, channel) =>
+          assert(host == "host")
+          assert(endpoint == "ep_1")
+          assert(channel == "ch_1")
+          //fail("RbnbHost require both host and port")
+        case _ => fail("extractor return None")
       }
     }
     "be (host,port,ep_1) when input `host:port/ep_1`" in {
@@ -120,6 +153,27 @@ class RbnbSourceTest extends WordSpec {
           assert(channel == "ch_1")
         case _ => fail("extractor returns None")
       }
+    }
+  }
+
+  "A RbnbSource apply" should {
+    "use `localhost` when host is missing" in {
+      assert("localhost:1/ep_1/ch_1" == RbnbSource("", "1", "ep_1", "ch_1"))
+    }
+    "use port 3333 when port is missing" in {
+      assert("1:3333/ep_1/ch_1" == RbnbSource("1","","ep_1","ch_1"))
+    }
+    "produce host:port/endpoint when channel is missing" in {
+      assert("host:port/ep_1" == RbnbSource("host","port","ep_1",""))
+    }
+    "produce empty when endpoint is missing" in {
+      assert("host:port" == RbnbSource("host","port", "", "ch_1"))
+    }
+    "produce localhost:3333/ep_1 when input (,,ep_1,)" in {
+      assert("localhost:3333/ep_1" == RbnbSource("","","ep_1",""))
+    }
+    "produce localhost:3333/ep_1/ch_1 when input (,,ep_1,ch_1)" in {
+      assert("localhost:3333/ep_1/ch_1" == RbnbSource("","","ep_1","ch_1"))
     }
   }
 
