@@ -49,7 +49,7 @@ class ConnectionSupervisorTest() extends TestKit(ActorSystem("test-system")) wit
       val supervisor = system.actorOf(ConnectionSupervisor.props[MockConnection](), "connection-supervisor-2")
       within(1200.millis) {
         supervisor ? QueryConnection(dsn = "/") pipeTo testActor
-        expectMsg(InvalidDsnError)
+        expectMsgClass(classOf[InvalidDsnError])
         supervisor ! PoisonPill
       }
 

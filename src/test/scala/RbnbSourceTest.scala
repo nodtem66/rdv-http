@@ -56,6 +56,17 @@ class RbnbSourceTest extends WordSpec {
       }
     }
 
+    "be (host,port, ep, ch/a/b/c) when input `host:port/ep/ch/a/b/c`" in {
+      "host:port/ep/ch/a/b/c" match {
+        case RbnbSource(host, port, endpoint, channel) =>
+          assert(host == "host")
+          assert(port == "port")
+          assert(endpoint == "ep")
+          assert(channel == "ch/a/b/c")
+        case _ => fail("extractor return None")
+      }
+    }
+
     "be (host,port,,) when input `host:port`" in {
       "host:port" match {
         case RbnbSource(host, port, endpoint, channel) =>

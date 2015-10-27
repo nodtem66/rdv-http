@@ -48,6 +48,6 @@ class Stat extends Actor with ActorLogging {
 
     case GetLastError(receiver) => receiver ! errorListBuffer.takeRight(1).toList
 
-    case msg:String => log.info("unknow message {}", msg)
+    case _ => log.debug("unknow message")
   }
 }

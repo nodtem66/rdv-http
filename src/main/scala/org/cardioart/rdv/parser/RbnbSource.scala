@@ -39,10 +39,10 @@ object RbnbSource {
           case _ => Some("", "", head, tail)
         }
 
-      case Array(address, endpoint, channel, _*) =>
+      case Array(address, endpoint, channel@_*) =>
         address match {
-          case RbnbHost(host, port) => Some(host, port, endpoint, channel)
-          case host:String if !host.contains(":") => Some(host, "", endpoint, channel)
+          case RbnbHost(host, port) => Some(host, port, endpoint, channel.reduce(_ + "/" + _))
+          case host:String if !host.contains(":") => Some(host, "", endpoint, channel.reduce(_ + "/" + _))
           case _ => None
         }
       case _ => None

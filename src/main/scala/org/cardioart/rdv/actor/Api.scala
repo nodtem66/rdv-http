@@ -10,6 +10,7 @@ import spray.can.server.Stats
 import spray.http.MediaTypes._
 import spray.json._
 import spray.routing.HttpServiceActor
+import spray.routing.PathMatchers.Segment
 
 import scala.concurrent.duration._
 
@@ -28,7 +29,27 @@ class Api(connectionSupervisorRef: ActorRef, sessionSupervisorRef: ActorRef)
           ctx.complete(x.toJson.toString())
       }
     }} ~
-    path("sessions") {get{complete{"yo!"}}} ~
+    path ("sessions") { get { ctx =>
+      ctx.complete("sessions")
+    }} ~
+    pathPrefix("session") {
+      path("start") {
+        get {
+          parameter('dsn.as[String]) {
+            dsn => ctx =>
+              ctx.complete("start " + dsn)
+          }
+        }
+      } ~
+      path("stop") {
+        get {
+          complete("stop")
+        }
+      } ~
+      path(Segment) { sid =>
+        complete("/" + sid)
+      }
+    } ~
     path("ping") {
       get {
         parameter('dsn.as[String]) {

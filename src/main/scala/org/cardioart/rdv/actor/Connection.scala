@@ -1,9 +1,10 @@
 package org.cardioart.rdv.actor
 
 import akka.actor._
-import org.cardioart.rdv.parser.{RbnbSource, RbnbHost}
-import scala.concurrent.duration._
 import com.rbnb.sapi.{ChannelMap, Sink}
+import org.cardioart.rdv.parser.{RbnbHost, RbnbSource}
+
+import scala.concurrent.duration._
 
 object Connection {
   case class StartTimer()
@@ -14,14 +15,12 @@ object Connection {
 }
 
 class Connection(dsn: String) extends Actor with ActorLogging {
-  import context.dispatcher
   import Connection._
+  import context.dispatcher
 
   val RbnbSource(host, port, endpoint, channel) = dsn
   val server = RbnbHost(host, port)
-  val path = endpoint
   val sink = new Sink()
-  val channelMap = new ChannelMap()
 
   var timer: Cancellable = _
   var channelNames = Array[String]()
@@ -30,20 +29,22 @@ class Connection(dsn: String) extends Actor with ActorLogging {
    * This is a blocking method to connect to DataTurbine server
    * before doing anything
    */
-  private def connect(dsn: String):Unit = {
-    sink.CloseRBNBConnection()
-    sink.OpenRBNBConnection(server, self.path.name)
+  protected def connect(dsn: String):Unit = {
+    try {
+      sink.CloseRBNBConnection()
+      sink.OpenRBNBConnection(server, self.path.name)
 
-    sink.VerifyConnection() match {
-      case true =>
-        log.info("dsn: {} connected", dsn)
+      if (sink.VerifyConnection()) {
+        log.debug("dsn: {} connected", dsn)
+
         subscribe()
         fetch()
         self ! StartTimer
-      case _ =>
-        log.info("dsn: {} reconnect", dsn)
-
-        context.system.scheduler.scheduleOnce(500.millis) { connect(dsn) }
+      }
+    } catch {
+      case _:Exception =>
+        context.parent ! ConnectionSupervisor.CloseConnection(dsn)
+        context.stop(self)
     }
   }
 
@@ -52,7 +53,7 @@ class Connection(dsn: String) extends Actor with ActorLogging {
    * see pattern: http://www.dataturbine.org/sites/default/files/programs/RBNB/doc/com/rbnb/sapi/Sink.html
    * #Request(com.rbnb.sapi.ChannelMap, double, double, java.lang.String)
    */
-  private def subscribe():Unit = {
+  protected def subscribe():Unit = {
     val cMap = new ChannelMap()
     cMap.Add("*/...")
     sink.Subscribe(cMap)
@@ -61,18 +62,13 @@ class Connection(dsn: String) extends Actor with ActorLogging {
   /**
    * This is a blocking fetch to query channels from DataTurbine server
    */
-  private def fetch():Unit = {
-    var cMap = new ChannelMap()
-    cMap = sink.Fetch(1000)
+  protected def fetch():Unit = {
+    val cMap = sink.Fetch(1000)
     channelNames = cMap.GetChannelList()
   }
 
   override def preStart() = {
     connect(dsn)
-  }
-
-  def preRestart():Unit = {
-    sink.CloseRBNBConnection()
   }
 
   def receive = {
@@ -83,16 +79,11 @@ class Connection(dsn: String) extends Actor with ActorLogging {
 
     case PingConnection => sender ! channelNames
 
-    case msg:String => log.info("unknown message {}", msg)
-  }
-
-  def postRestart():Unit = {
-    connect(dsn)
+    case _ => log.debug("unknown message")
   }
 
   override def postStop() = {
-
-    timer.cancel()
+    if (timer ne null) timer.cancel()
     sink.CloseRBNBConnection()
   }
 }

@@ -11,5 +11,6 @@ An RDV-like (real-time data viewer) HTTP server for [DataTurbine](http://datatur
     * `Session Actor` stream and buffer data from [DataTurbine](http://dataturbine.org) and return the recent buffer data to `API Actor`
     
 ## TODO
-* Implement `session supervisor actor and sessoin actor`
+[x] Implement `session supervisor actor and sessoin actor`
+[] Integrate `session` into `API actor`
 :bowtie:
