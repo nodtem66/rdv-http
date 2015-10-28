@@ -65,7 +65,7 @@ class SessionSupervisorTest extends TestKit(ActorSystem("test-system")) with Wor
 
         val sid = result.sid
         supervisor ? QuerySession("1") pipeTo probe2.ref
-        probe2.expectMsgClass(classOf[InvalidSessionId])
+        probe2.expectMsg(InvalidSessionId)
 
         within(2000.millis) {
           supervisor.ask(QuerySession(sid)) pipeTo probe3.ref

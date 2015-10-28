@@ -18,7 +18,7 @@ object Session {
 
   case class Parameters(dsn: String, bufferSize: Int, sessionTimeout: Timeout)
 
-  case class FlushSession()
+  case object FlushSession
 
   case class SessionResult(map: immutable.Map[String, Array[_]])
 

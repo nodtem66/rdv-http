@@ -18,7 +18,7 @@ object ConnectionSupervisor {
   case class QueryConnection(dsn: String)
   case class Result(status: String, connections: Array[String])
   case class CloseConnection(dsn: String)
-  case class InvalidDsnError()
+  case object InvalidDsnError
 
   final def props(myClass: Class[_ <: Actor]): Props = Props(new ConnectionSupervisor(myClass))
   final def props[T <: Actor: ClassTag](): Props = {
@@ -66,7 +66,7 @@ class ConnectionSupervisor(actorClass: Class[_]) extends Actor with ActorLogging
               log.info("create connection for {}", dsn)
               query(actor, sender())
           }
-        case s:String => sender ! InvalidDsnError()
+        case s:String => sender ! InvalidDsnError
       }
 
     case CloseConnection(dsn) =>

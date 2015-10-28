@@ -49,7 +49,7 @@ class ConnectionSupervisorTest() extends TestKit(ActorSystem("test-system")) wit
       val supervisor = system.actorOf(ConnectionSupervisor.props[MockConnection](), "connection-supervisor-2")
       within(1200.millis) {
         supervisor ? QueryConnection(dsn = "/") pipeTo testActor
-        expectMsgClass(classOf[InvalidDsnError])
+        expectMsg(InvalidDsnError)
         supervisor ! PoisonPill
       }
 
@@ -87,7 +87,7 @@ class MockConnection(dsn: String) extends Actor {
   val numbers: ArrayBuffer[String] = ArrayBuffer()
 
   def receive = {
-    case RefreshConnection() => numbers += "0"
+    case RefreshConnection => numbers += "0"
     case PingConnection =>
       sender ! numbers.toArray
       numbers += "0"

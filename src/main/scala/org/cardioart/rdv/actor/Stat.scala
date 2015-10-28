@@ -10,9 +10,9 @@ object Stat {
 
   case class GetAliveSession(receiver: ActorRef)
 
-  case class SessionCreated()
+  case object SessionCreated
 
-  case class SessionDestroy()
+  case object SessionDestroy
 
   case class Error(from: String, msg: String)
 

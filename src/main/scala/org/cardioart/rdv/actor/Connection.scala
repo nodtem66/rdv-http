@@ -7,9 +7,9 @@ import org.cardioart.rdv.parser.{RbnbHost, RbnbSource}
 import scala.concurrent.duration._
 
 object Connection {
-  case class StartTimer()
-  case class RefreshConnection()
-  case class PingConnection()
+  case object StartTimer
+  case object RefreshConnection
+  case object PingConnection
 
   final def props(dsn: String): Props = Props(new Connection(dsn))
 }

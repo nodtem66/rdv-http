@@ -18,13 +18,13 @@ object SessionSupervisor {
   case class OpenSession(dsn: String)
   case class QuerySession(sid: String)
   case class CloseSession(sid: String)
-  case class ListSession()
+  case object ListSession
 
   case class SessionOperation(status: String, sid: String)
   case class SessionList(sessions: immutable.Map[String, String])
 
-  case class SessionTimeout()
-  case class InvalidSessionId()
+  case object SessionTimeout
+  case object InvalidSessionId
 
   final def props(myClass: Class[_ <: Actor]): Props = Props(new SessionSupervisor(myClass))
   final def props[T <: Actor: ClassTag](): Props = {
@@ -54,7 +54,7 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
   protected def compileDsn(dsn: String) = dsn match {
     case RbnbSource(host, port, endpoint, channel) =>
       RbnbSource(host, port, endpoint, channel)
-    case _ => InvalidDsnError()
+    case _ => InvalidDsnError
   }
 
   def receive = {
@@ -71,7 +71,7 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
 
           sender ! SessionOperation ("success", newSid)
 
-        case _ => sender ! InvalidDsnError()
+        case _ => sender ! InvalidDsnError
       }
 
     case CloseSession(sid) =>
@@ -82,7 +82,7 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
           mapSidDsn.remove(sid)
           mapSidActor.remove(sid)
           sender ! SessionOperation ("success", "")
-        case _ => sender ! InvalidSessionId()
+        case _ => sender ! InvalidSessionId
       }
 
     case ListSession =>
@@ -98,10 +98,10 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
 
           f onComplete {
             case Success(r) => caller ! r;
-            case Failure(_) => caller ! SessionTimeout();
+            case Failure(_) => caller ! SessionTimeout;
           }
 
-        case _ => sender ! InvalidSessionId()
+        case _ => sender ! InvalidSessionId
       }
 
     case _ => log.debug("unknown message")

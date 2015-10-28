@@ -1,16 +1,16 @@
 package org.cardioart.rdv.actor
 
 import akka.actor.{ActorLogging, ActorRef}
-import akka.pattern.{ask,pipe}
+import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import org.cardioart.rdv.actor.ConnectionSupervisor.QueryConnection
-import org.cardioart.rdv.parser.StatsJsonProtocol._
+import org.cardioart.rdv.actor.ConnectionSupervisor._
+import org.cardioart.rdv.actor.SessionSupervisor._
+import org.cardioart.rdv.parser.MyJsonProtocol.StatJsonFormat
 import spray.can.Http
 import spray.can.server.Stats
 import spray.http.MediaTypes._
 import spray.json._
 import spray.routing.HttpServiceActor
-import spray.routing.PathMatchers.Segment
 
 import scala.concurrent.duration._
 
@@ -30,24 +30,31 @@ class Api(connectionSupervisorRef: ActorRef, sessionSupervisorRef: ActorRef)
       }
     }} ~
     path ("sessions") { get { ctx =>
-      ctx.complete("sessions")
+      val respond = context.actorOf(ResponderActor.props(ctx))
+      sessionSupervisorRef.ask(ListSession).pipeTo(respond)
     }} ~
     pathPrefix("session") {
       path("start") {
         get {
-          parameter('dsn.as[String]) {
-            dsn => ctx =>
-              ctx.complete("start " + dsn)
+          parameters('dsn.as[String], 'limit.as[Int] ? 1000) {
+            (dsn,limit) => ctx =>
+              val respond = context.actorOf(ResponderActor.props(ctx))
+              sessionSupervisorRef.ask(OpenSession(dsn)).pipeTo(respond)
           }
         }
       } ~
       path("stop") {
         get {
-          complete("stop")
+          parameter('sid.as[String]) {
+            sid => ctx =>
+              val respond = context.actorOf(ResponderActor.props(ctx))
+              sessionSupervisorRef.ask(CloseSession(sid)).pipeTo(respond)
+          }
         }
       } ~
-      path(Segment) { sid =>
-        complete("/" + sid)
+      path(Segment) { sid => ctx =>
+        val respond = context.actorOf(ResponderActor.props(ctx))
+        sessionSupervisorRef.ask(QuerySession(sid)).pipeTo(respond)
       }
     } ~
     path("ping") {
