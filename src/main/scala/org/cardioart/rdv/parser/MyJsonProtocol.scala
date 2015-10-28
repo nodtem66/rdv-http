@@ -18,6 +18,7 @@ object MyJsonProtocol extends DefaultJsonProtocol {
       case s: String => JsString(s)
       case b: Boolean if b => JsTrue
       case b: Boolean if !b => JsFalse
+      case _ => JsNull
     }
     def read(value: JsValue) = (value: @unchecked) match {
       case JsNumber(n) => n.intValue()
@@ -55,7 +56,7 @@ object MyJsonProtocol extends DefaultJsonProtocol {
     def write(r: SessionResult) = {
       var field = ListBuffer[JsField]()
 
-      for ((k,v) <- r.map) {
+      for ((k:String,v) <- r.channel) {
         if (v.isInstanceOf[Array[Double]])
           field += (k -> v.asInstanceOf[Array[Double]].toJson)
         else if (v.isInstanceOf[Array[Int]])
@@ -64,7 +65,10 @@ object MyJsonProtocol extends DefaultJsonProtocol {
           field += (k -> v.asInstanceOf[Array[String]].toJson)
         else if (v.isInstanceOf[Array[Byte]])
           field += (k -> v.asInstanceOf[Array[Byte]].toJson)
+        else
+          field += (k -> v.asInstanceOf[Array[Any]].toJson)
       }
+
       JsObject(field.toList: _*)
     }
     def read(value: JsValue) = value match {
@@ -73,7 +77,7 @@ object MyJsonProtocol extends DefaultJsonProtocol {
   }
 
   implicit object SessionListFormat extends RootJsonFormat[SessionList] {
-    def write(r: SessionList) = JsArray(r.sessions.map(_.toJson).toVector)
+    def write(r: SessionList) = r.sessions.toJson
     def read(value: JsValue) = value match {
       case _ => deserializationError("not support JSON to SessionList")
     }

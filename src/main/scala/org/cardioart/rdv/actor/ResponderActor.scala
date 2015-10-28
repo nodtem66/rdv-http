@@ -3,7 +3,7 @@ package org.cardioart.rdv.actor
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import org.cardioart.rdv.actor.ConnectionSupervisor._
 import org.cardioart.rdv.actor.Session.SessionResult
-import org.cardioart.rdv.actor.SessionSupervisor.{SessionList, SessionOperation, SessionTimeout}
+import org.cardioart.rdv.actor.SessionSupervisor.{InvalidSessionId, SessionList, SessionOperation, SessionTimeout}
 import org.cardioart.rdv.parser.MyJsonProtocol._
 import spray.http.StatusCodes
 import spray.json._
@@ -35,6 +35,11 @@ class ResponderActor(req: RequestContext) extends Actor with ActorLogging {
 
     case SessionTimeout =>
       req.complete(StatusCodes.OK, "{\"error\": \"session timeout\"}")
+      self ! PoisonPill
+
+    case InvalidSessionId =>
+      req.complete(StatusCodes.OK, "{\"error\": \"invalid session id\"}")
+      self ! PoisonPill
 
     case InvalidDsnError =>
       req.complete(StatusCodes.OK, "{\"error\": \"invalid dsn\"}")

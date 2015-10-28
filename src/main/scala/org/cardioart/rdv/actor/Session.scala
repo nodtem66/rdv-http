@@ -1,12 +1,12 @@
 package org.cardioart.rdv.actor
 
-import akka.actor.Props
+import akka.actor.{ActorLogging, Props}
 import akka.util.Timeout
 import com.rbnb.sapi.ChannelMap
 import org.cardioart.rdv.actor.Session._
 
-import scala.collection.{immutable, mutable}
 import scala.collection.mutable.ListBuffer
+import scala.collection.{immutable, mutable}
 import scala.concurrent.duration._
 
 /**
@@ -20,13 +20,13 @@ object Session {
 
   case object FlushSession
 
-  case class SessionResult(map: immutable.Map[String, Array[_]])
+  case class SessionResult(channel: immutable.Map[String, Array[_]])
 
   final def props(dsn: String): Props = Props(new Session(Parameters(dsn, 1000, 1000.millis)))
   final def props(params: Parameters): Props = Props(new Session(params))
 }
 
-class Session(params: Parameters) extends Connection(params.dsn) {
+class Session(params: Parameters) extends Connection(params.dsn) with ActorLogging {
 
   import Connection._
   import context.dispatcher
@@ -34,6 +34,11 @@ class Session(params: Parameters) extends Connection(params.dsn) {
   var bufferMap = new mutable.HashMap[String, ListBuffer[_]]()
   var channelIndexs = Array[Int]()
 
+  override def subscribe(): Unit = {
+    val cMap = new ChannelMap()
+    cMap.Add(f"/$endpoint%s/$channel%s/*/...")
+    sink.Subscribe(cMap)
+  }
   override def preStart(): Unit = {
     super.preStart()
     flush()
@@ -41,14 +46,14 @@ class Session(params: Parameters) extends Connection(params.dsn) {
 
   override def receive = {
     case StartTimer =>
-      timer = context.system.scheduler.schedule(100.millis, 1200.millis, self, RefreshConnection)
+      timer = context.system.scheduler.schedule(100.millis, 500.millis, self, RefreshConnection)
 
     case FlushSession | PingConnection =>
 
       val m = bufferMap.map((t: (String, ListBuffer[_])) => t._1 -> t._2.toArray).toMap
-      bufferMap.foreach(_._2.clear())
-
       sender ! SessionResult(m)
+
+      bufferMap.foreach(_._2.clear())
 
     case RefreshConnection => flush()
 
@@ -57,7 +62,7 @@ class Session(params: Parameters) extends Connection(params.dsn) {
 
   protected def flush(): Unit = {
 
-    val cMap = sink.Fetch(params.sessionTimeout.duration.toMillis)
+    val cMap = sink.Fetch(1000)
 
     channelNames = cMap.GetChannelList()
     channelIndexs = channelNames.map(x => cMap.GetIndex(x))

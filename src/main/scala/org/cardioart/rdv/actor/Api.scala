@@ -4,6 +4,7 @@ import akka.actor.{ActorLogging, ActorRef}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import org.cardioart.rdv.actor.ConnectionSupervisor._
+import org.cardioart.rdv.actor.Session.Parameters
 import org.cardioart.rdv.actor.SessionSupervisor._
 import org.cardioart.rdv.parser.MyJsonProtocol.StatJsonFormat
 import spray.can.Http
@@ -11,6 +12,7 @@ import spray.can.server.Stats
 import spray.http.MediaTypes._
 import spray.json._
 import spray.routing.HttpServiceActor
+
 
 import scala.concurrent.duration._
 
@@ -36,10 +38,10 @@ class Api(connectionSupervisorRef: ActorRef, sessionSupervisorRef: ActorRef)
     pathPrefix("session") {
       path("start") {
         get {
-          parameters('dsn.as[String], 'limit.as[Int] ? 1000) {
-            (dsn,limit) => ctx =>
+          parameters('dsn.as[String], 'limit.as[Int] ? 1000, 't.as[Int] ? 1000) {
+            (dsn,limit,t) => ctx =>
               val respond = context.actorOf(ResponderActor.props(ctx))
-              sessionSupervisorRef.ask(OpenSession(dsn)).pipeTo(respond)
+              sessionSupervisorRef.ask(OpenSession(Parameters(dsn, limit, t.millis))).pipeTo(respond)
           }
         }
       } ~

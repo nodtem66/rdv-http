@@ -18,8 +18,9 @@ object Boot extends App {
   // actors
   val statActor = system.actorOf(Props[Stat], "stat-actor")
   val connectionActor = system.actorOf(ConnectionSupervisor.props[Connection](), "connection-supervisor")
+  val sessionActor = system.actorOf(SessionSupervisor.props[Session](), "session-supervisor")
 
   // HTTP Restful API interface
-  val apiActor = system.actorOf(Props(new Api(connectionActor, ActorRef.noSender)), "api-actor")
+  val apiActor = system.actorOf(Props(new Api(connectionActor, sessionActor)), "api-actor")
   IO(Http) ! Http.Bind(apiActor, interface = "localhost", port = 8080)
 }

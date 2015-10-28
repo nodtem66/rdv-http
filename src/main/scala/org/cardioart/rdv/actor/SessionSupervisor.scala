@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
 
 object SessionSupervisor {
 
-  case class OpenSession(dsn: String)
+  case class OpenSession(param: Parameters)
   case class QuerySession(sid: String)
   case class CloseSession(sid: String)
   case object ListSession
@@ -59,14 +59,14 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
 
   def receive = {
 
-    case OpenSession(dsn) =>
-      compileDsn(dsn) match {
+    case OpenSession(param) =>
+      compileDsn(param.dsn) match {
         case s:String =>
 
           val newSid = generateSessionId (s)
           mapSidDsn += newSid -> s
 
-          val actor = context.actorOf (Props (childClass, s), newSid)
+          val actor = context.actorOf (Props (childClass, param), newSid)
           mapSidActor += newSid -> actor
 
           sender ! SessionOperation ("success", newSid)
@@ -94,7 +94,7 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
         case Some(ref) =>
 
           val caller = sender()
-          val f = ref.ask(FlushSession).mapTo[SessionResult]
+          val f = ref.ask(FlushSession) //.mapTo[SessionResult]
 
           f onComplete {
             case Success(r) => caller ! r;

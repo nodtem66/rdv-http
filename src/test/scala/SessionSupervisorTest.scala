@@ -29,7 +29,7 @@ class SessionSupervisorTest extends TestKit(ActorSystem("test-system")) with Wor
       val supervisor = system.actorOf(SessionSupervisor.props[MockSession]())
       val probe = TestProbe()
       within(2.seconds) {
-        supervisor ? OpenSession("/1/2/3/4") pipeTo probe.ref
+        supervisor ? OpenSession(Parameters("/1/2/3/4", 1000, 1.second)) pipeTo probe.ref
         val result = probe.expectMsgClass(classOf[SessionOperation])
         assert(result.status == "success")
         assert(!result.sid.isEmpty)
@@ -58,7 +58,7 @@ class SessionSupervisorTest extends TestKit(ActorSystem("test-system")) with Wor
       val probe3 = TestProbe()
 
       within(5000.millis) {
-        supervisor ? OpenSession("/1/2/3/4") pipeTo probe.ref
+        supervisor ? OpenSession(Parameters("/1/2/3/4", 1000, 1.second)) pipeTo probe.ref
         val result = probe.expectMsgClass(classOf[SessionOperation])
         assert(result.status == "success")
         assert(!result.sid.isEmpty)
@@ -69,9 +69,9 @@ class SessionSupervisorTest extends TestKit(ActorSystem("test-system")) with Wor
 
         within(2000.millis) {
           supervisor.ask(QuerySession(sid)) pipeTo probe3.ref
-          val result = probe3.expectMsgClass(classOf[SessionResult])
-          assert(result.map.nonEmpty)
-          assert(result.map.isDefinedAt("test"))
+          val m = probe3.expectMsgClass(classOf[SessionResult])
+          assert(m.channel.nonEmpty)
+          assert(m.channel.isDefinedAt("test"))
           supervisor ! PoisonPill
         }
 
@@ -80,7 +80,7 @@ class SessionSupervisorTest extends TestKit(ActorSystem("test-system")) with Wor
   }
 }
 
-class MockSession(dsn: String) extends Actor with ActorLogging {
+class MockSession(param: Parameters) extends Actor with ActorLogging {
   import scala.collection.immutable
 
   val myMap = immutable.HashMap[String, Array[Int]]("test" -> Array[Int](1,2,3,4))
