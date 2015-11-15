@@ -12,6 +12,7 @@ An RDV-like (real-time data viewer) HTTP server for [DataTurbine](http://datatur
     
 ## TODO
 - [x] Implement `session supervisor actor and sessoin actor` (26/10/2558)
-- [x] Integrate `session` into `API actor` (27/10)2558)
-- [ ] Fix steaming buffer problem
+- [x] Integrate `session` into `API actor` (27/10/2558)
+- [x] Fix steaming buffer problem (14/11/2558)
+- [ ] create web-based RDV via RESTful service
 :bowtie:

@@ -18,6 +18,7 @@ object SessionSupervisor {
   case class OpenSession(param: Parameters)
   case class QuerySession(sid: String)
   case class CloseSession(sid: String)
+  case class RemoveSession(sid: String)
   case object ListSession
 
   case class SessionOperation(status: String, sid: String)
@@ -75,7 +76,6 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
       }
 
     case CloseSession(sid) =>
-
       mapSidActor.get(sid) match {
         case Some(ref) =>
           ref ! PoisonPill
@@ -83,6 +83,14 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
           mapSidActor.remove(sid)
           sender ! SessionOperation ("success", "")
         case _ => sender ! InvalidSessionId
+      }
+
+    case RemoveSession(sid) =>
+      mapSidActor.get(sid) match {
+        case Some(_) =>
+          mapSidDsn.remove(sid)
+          mapSidActor.remove(sid)
+        case _ =>
       }
 
     case ListSession =>
@@ -94,7 +102,7 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
         case Some(ref) =>
 
           val caller = sender()
-          val f = ref.ask(FlushSession) //.mapTo[SessionResult]
+          val f = ref.ask(FlushSession).mapTo[SessionResult]
 
           f onComplete {
             case Success(r) => caller ! r;

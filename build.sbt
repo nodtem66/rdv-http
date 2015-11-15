@@ -25,3 +25,8 @@ libraryDependencies ++= {
 }
 
 resolvers += "spray repo" at "http://repo.spray.io"
+
+// for assembly plugins
+assemblyJarName in assembly := "rdv-http.jar"
+
+test in assembly := {}

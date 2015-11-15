@@ -1,9 +1,10 @@
 package org.cardioart.rdv.actor
 
 import akka.actor._
-import com.rbnb.sapi.{ChannelMap, Sink}
+import com.rbnb.sapi.{ChannelTree, ChannelMap, Sink}
 import org.cardioart.rdv.parser.{RbnbHost, RbnbSource}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 
 object Connection {
@@ -54,17 +55,27 @@ class Connection(dsn: String) extends Actor with ActorLogging {
    * #Request(com.rbnb.sapi.ChannelMap, double, double, java.lang.String)
    */
   protected def subscribe():Unit = {
-    val cMap = new ChannelMap()
-    cMap.Add("*/...")
-    sink.Subscribe(cMap)
+
   }
 
   /**
    * This is a blocking fetch to query channels from DataTurbine server
    */
   protected def fetch():Unit = {
-    val cMap = sink.Fetch(1000)
-    channelNames = cMap.GetChannelList()
+    var bMap = new ChannelMap()
+    bMap.Add("...")
+    sink.RequestRegistration(bMap)
+    bMap = sink.Fetch(100, bMap)
+    val channelList = bMap.GetChannelList()
+    val buffer = new ArrayBuffer[String]
+    for (channel <- channelList) {
+      if (!channel.contains("_Log")) {
+        val channelIndex = bMap.GetIndex(channel)
+        if (channelIndex != -1)
+          buffer += channel
+      }
+    }
+    channelNames = buffer.toArray
   }
 
   override def preStart() = {
