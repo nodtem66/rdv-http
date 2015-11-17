@@ -1,5 +1,5 @@
 # Dockerfile for rdb-http
-# Version 0.1.0
+# Version 0.1.1
 FROM java:8
 MAINTAINER Jirawat I. <nodtem66@gmail.com>
 

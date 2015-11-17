@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="rdv-app">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="css/angular-material.min.css">
+  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body layout="column" class="ng-clock pattern-diag-strip" style="min-height:100%;" ng-controller="MainController as main">
+  <!--Header -->
+  <md-toolbar id="headerbar" layout="row" layout-align="center center" class="ng-clock md-whiteframe-z2">
+    <div class="md-toolbar-tools" style="min-height:48px;">
+      <div id="logo" layout-align="center center">
+        <md-button class="md-icon-button" aria-label="Home" ng-click="gotoMain();">
+          <md-icon class="fa" md-font-icon="fa-bank" ng-if="!showBackIcon" style="margin-top:8px"></md-icon>
+          <md-icon class="fa" md-font-icon="fa-chevron-left" ng-if="showBackIcon" style="margin-top:8px"></md-icon>
+        </md-button>
+        <span>RDV-HTTP</span>
+      </div>
+      <div flex></div>
+      <div><md-icon class="fa" md-font-icon="fa-signal" style="color:#fff;"></md-icon></div>
+      <div><md-button aria="help page" class="md-icon-button"><md-icon class="fa" md-font-icon="fa-question" style="color:#fff;"></md-icon></md-button></div>
+    </div>
+  </md-toolbar>
+
+  <md-content layout="row" layout-align="center center" flex ng-show="page == 'main'">
+    <div flex layout="row" layout-align="center center">
+      <md-button class="md-raised md-primary" style="min-width:100px;" ng-click="openConnectionPage()"><md-icon class="fa" md-font-icon="fa-plus" style="margin-top:8px;"></md-icon> New</md-button>
+    </div>
+    <div flex>
+      <md-list>
+        <md-subheader class="md-no-sticky">Recent session</md-subheader>
+        <md-list-item class="recent-item" ng-click="openSession('yo')">/user/qweqwe/123123</md-list-item>
+      </md-list>
+    </div>
+  </md-content>
+
+  <md-content flex ng-show="page == 'connection'" layout="column">
+    <div layout="row" style="padding:32px">
+      <span style="margin-top:24px;padding-right:16px;">Enter URL</span>
+      <md-input-container flex>
+        <label>search connection</label>
+        <input type="text" />
+      </md-input-container>
+      <md-button style="margin-top:12px;" aria-label="search" class="md-icon-button"><md-icon class="fa" md-font-icon="fa-search"></md-icon></md-button>
+    </div>
+  </md-content>
+
+  <md-content  flex ng-show="page == 'session'">
+  <h3>{{ session.name }} ({{session.url}})</h3>
+
+  </md-content>
+  <script src="js/angular.min.js"></script>
+  <script src="js/angular-animate.min.js"></script>
+  <script src="js/angular-aria.min.js"></script>
+  <script src="js/angular-cookies.min.js"></script>
+  <script src="js/angular-material.min.js"></script>
+
+  <script src="app/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+body {background: #fff;}
+#headerbar {background: #333;height:48px;min-height:48px;}
+#headerbar #logo {color:#fff;font-weight:bold;height:48px;}
+.recent-item {cursor:pointer;}

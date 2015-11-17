@@ -2,7 +2,7 @@ organization := "org.cardioart"
 
 name := "rdv-http"
 
-version := "0.1.0"
+version := "0.1.1"
 
 scalaVersion := "2.11.7"
 
@@ -14,6 +14,7 @@ libraryDependencies ++= {
   Seq(
     "org.scala-lang" % "scala-reflect" % "2.11.7",
     "org.scala-lang.modules" %% "scala-xml" % "1.0.4",
+    "com.github.scopt" %% "scopt" % "3.3.0",
     "io.spray" %% "spray-can" % sprayVersion,
     "io.spray" %% "spray-routing" % sprayVersion,
     "io.spray" %% "spray-json" % "1.3.2",
@@ -25,6 +26,7 @@ libraryDependencies ++= {
 }
 
 resolvers += "spray repo" at "http://repo.spray.io"
+resolvers += Resolver.sonatypeRepo("public")
 
 // for assembly plugins
 assemblyJarName in assembly := "rdv-http.jar"
