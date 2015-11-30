@@ -6,12 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="css/angular-material.min.css">
   <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/loading-bar.min.css">
   <link rel="stylesheet" href="css/main.css">
 </head>
 
 <body layout="column" class="ng-clock pattern-diag-strip" style="min-height:100%;" ng-controller="MainController as main">
+
+  <!-- screen loading -->
+  <div class="screenpage layout-column layout-align-center-center flex" ng-show="countLoad < totalLoad">
+    <div class="inner">
+      <div class="heading">RDV-HTTP</div>
+    </div>
+    <div class="hint" compile="hint_message"></div>
+    <loader style="position:relative;"></loader>
+  </div>
+
   <!--Header -->
-  <md-toolbar id="headerbar" layout="row" layout-align="center center" class="ng-clock md-whiteframe-z2">
+  <md-toolbar id="headerbar" layout="row" layout-align="center center" class="ng-clock md-whiteframe-z2" ng-clock>
     <div class="md-toolbar-tools" style="min-height:48px;">
       <div id="logo" layout-align="center center">
         <md-button class="md-icon-button" aria-label="Home" ng-click="gotoMain();">
@@ -26,31 +37,55 @@
     </div>
   </md-toolbar>
 
+  <!-- 1. main page -->
   <md-content layout="row" layout-align="center center" flex ng-show="page == 'main'">
     <div flex layout="row" layout-align="center center">
       <md-button class="md-raised md-primary" style="min-width:100px;" ng-click="openConnectionPage()"><md-icon class="fa" md-font-icon="fa-plus" style="margin-top:8px;"></md-icon> New</md-button>
     </div>
     <div flex>
       <md-list>
-        <md-subheader class="md-no-sticky">Recent session</md-subheader>
-        <md-list-item class="recent-item" ng-click="openSession('yo')">/user/qweqwe/123123</md-list-item>
+        <md-subheader class="md-no-sticky" layout="row"><span flex>Recent session</span> <md-button ng-click="clearSessionList();" class="md-primary">clear</md-button></md-subheader>
+        <md-list-item class="recent-item" ng-click="openSession(session)" ng-repeat="session in session_list">
+          <md-icon class="fa" md-font-icon="fa-file"></md-icon>
+          <div flex>{{ session.dsn }}</div>
+        </md-list-item>
       </md-list>
     </div>
   </md-content>
 
+  <!-- 2. connection page -->
   <md-content flex ng-show="page == 'connection'" layout="column">
     <div layout="row" style="padding:32px">
       <span style="margin-top:24px;padding-right:16px;">Enter URL</span>
       <md-input-container flex>
         <label>search connection</label>
-        <input type="text" />
+        <input type="text" ng-model="dsn" ng-keypress="checkEnter($event);" />
       </md-input-container>
-      <md-button style="margin-top:12px;" aria-label="search" class="md-icon-button"><md-icon class="fa" md-font-icon="fa-search"></md-icon></md-button>
+      <md-button style="margin-top:12px;" aria-label="search" class="md-icon-button" ng-click="queryConnection(dsn);"><md-icon class="fa" md-font-icon="fa-search"></md-icon></md-button>
+    </div>
+    <div layout="row" ng-show="showPingResult">
+      <md-list flex>
+        <md-list-item layout="row" layout-align="start center">
+          <b style="margin:0 24px;">status: </b>
+          <div ng-if="ping_result.status == 'online'"><md-icon class="fa" md-font-icon="fa-circle" style="color:green"></md-icon> online</div>
+          <div ng-if="ping_result.status == 'offline'"><md-icon class="fa" md-font-icon="fa-circle-thin" style="color:red"></md-icon> offline</div>
+        </md-list-item>
+        <md-list-item ng-repeat="c in ping_result.connections" class="recent-item" ng-click="startSession(dsn + '/'+ c);">
+          <md-icon class="fa" md-font-icon="fa-file"></md-icon>
+          <div flex>{{c}}</div>
+        </md-list-item>
+        <md-list-item ng-show="ping_result.connections.length == 0 && showPingLoading == false">NO DATA</md-list-item>
+      </md-list>
+    </div>
+    <div layout="column" layout-align="center center" ng-show="showPingLoading">
+      <loader style="position:relative;"></loader>
+      <md-button ng-click="cancelPromise()">cancel</md-button>
     </div>
   </md-content>
 
-  <md-content  flex ng-show="page == 'session'">
-  <h3>{{ session.name }} ({{session.url}})</h3>
+  <md-content  flex ng-show="page == 'session'" style="padding:8px">
+    <h3>{{session.dsn}} </h3>
+    <code>({{session.sid}})</code>
 
   </md-content>
   <script src="js/angular.min.js"></script>
@@ -58,6 +93,8 @@
   <script src="js/angular-aria.min.js"></script>
   <script src="js/angular-cookies.min.js"></script>
   <script src="js/angular-material.min.js"></script>
+  <script src="js/loading-bar.min.js"></script>
+
 
   <script src="app/main.js"></script>
 </body>

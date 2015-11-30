@@ -69,7 +69,7 @@ class Connection(dsn: String) extends Actor with ActorLogging {
     val channelList = bMap.GetChannelList()
     val buffer = new ArrayBuffer[String]
     for (channel <- channelList) {
-      if (!channel.contains("_Log")) {
+      if (!channel.contains("_Log") && !channel.contains("_Metrics")) {
         val channelIndex = bMap.GetIndex(channel)
         if (channelIndex != -1)
           buffer += channel

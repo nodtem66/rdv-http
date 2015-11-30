@@ -66,9 +66,9 @@ class Session(params: Parameters) extends Actor with ActorLogging {
 
   protected def subscribe(): Unit = {
     val cMap = new ChannelMap()
-    cMap.Add(f"$endpoint%s/$channel%s/...")
+    cMap.Add(f"$endpoint%s/$channel%s")
     sink.Subscribe(cMap)
-    log.info(f"$endpoint%s/$channel%s/...")
+    log.info(f"assign to session: $endpoint%s/$channel%s")
   }
   override def preStart(): Unit = {
     connect(params.dsn)
@@ -76,7 +76,7 @@ class Session(params: Parameters) extends Actor with ActorLogging {
 
   override def receive = {
     case StartTimer =>
-      timer = context.system.scheduler.schedule(100.millis, 500.millis, self, RefreshConnection)
+      timer = context.system.scheduler.schedule(100.millis, params.sessionTimeout.duration, self, RefreshConnection)
 
     case FlushSession =>
 
@@ -92,7 +92,7 @@ class Session(params: Parameters) extends Actor with ActorLogging {
 
   protected def flush(): Unit = {
 
-    val cMap = sink.Fetch(1000)
+    val cMap = sink.Fetch(params.sessionTimeout.duration.toMillis)
 
     channelNames = cMap.GetChannelList()
     channelIndexs = channelNames.map(x => cMap.GetIndex(x))
@@ -143,6 +143,7 @@ class Session(params: Parameters) extends Actor with ActorLogging {
             buffer.remove(0, overSize)
             timeBuffer.remove(0, overSize)
           }
+          log.info(overSize.toString)
 
         case _ => ()
       }

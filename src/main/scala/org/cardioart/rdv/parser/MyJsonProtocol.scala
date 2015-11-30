@@ -76,6 +76,16 @@ object MyJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
+  implicit object SessionObjectFormat extends RootJsonFormat[SessionObject] {
+    def write(r: SessionObject) = JsObject(
+      "sid" -> JsString(r.id),
+      "dsn" -> JsString(r.url)
+    )
+    def read(value: JsValue) = value match {
+      case _ => deserializationError("not support JSON to SessionOperation")
+    }
+  }
+
   implicit object SessionListFormat extends RootJsonFormat[SessionList] {
     def write(r: SessionList) = r.sessions.toJson
     def read(value: JsValue) = value match {

@@ -14,7 +14,7 @@
     <li><code><a href="/stat">/stat</a></code> server stats</li>
     <li><code><a href="/sessions">/sessions</a></code> show session list</li>
     <li><code>/ping?dsn=host:port</code> show list of endpoints and channels</li>
-    <li><code>/session/start?dsn=$dsn</code> start data stream session to target DSN (format: host:port/endpoint/channel)</li>
+    <li><code>/session/start?dsn=$dsn&limit=1000&t=15</code> start data stream session to target DSN (format: host:port/endpoint/channel) with limited length of buffer and session timeout (ms)</li>
     <li><code>/session/stop?sid=$sid</code> stop session with input sid</li>
     <li><code>/session/$sid</code> flush data buffer to JSON format</li>
 </ul>

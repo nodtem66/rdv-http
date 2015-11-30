@@ -8,6 +8,7 @@ import org.cardioart.rdv.actor.Session._
 import org.cardioart.rdv.parser.RbnbSource
 import org.cardioart.rdv.util.RandomHash
 
+import scala.collection.mutable.ListBuffer
 import scala.collection.{immutable, mutable}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
@@ -22,7 +23,8 @@ object SessionSupervisor {
   case object ListSession
 
   case class SessionOperation(status: String, sid: String)
-  case class SessionList(sessions: immutable.Map[String, String])
+  case class SessionObject(id: String, url: String)
+  case class SessionList(sessions: List[SessionObject])
 
   case object SessionTimeout
   case object InvalidSessionId
@@ -40,7 +42,7 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
   import SupervisorStrategy._
   import context.dispatcher
 
-  implicit val timeout: Timeout = 500.millis
+  implicit val timeout: Timeout = 1000.millis
   var mapSidDsn = new mutable.HashMap[String, String]()
   var mapSidActor = new mutable.HashMap[String, ActorRef]()
 
@@ -94,7 +96,8 @@ class SessionSupervisor(childClass: Class[_]) extends Actor with ActorLogging {
       }
 
     case ListSession =>
-      sender ! SessionList(mapSidDsn.toMap)
+      val list = mapSidDsn.map {case (sid, dsn) => SessionObject(sid, dsn)}
+      sender ! SessionList(list.toList)
 
     case QuerySession(sid) =>
 
